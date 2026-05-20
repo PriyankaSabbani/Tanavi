@@ -28,26 +28,50 @@ const scrollPositions = {};
 
 function ScrollToTop() {
   const location = useLocation();
-  
+
   useEffect(() => {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual';
     }
   }, []);
-  
+
   useEffect(() => {
-    const savedPosition = scrollPositions[location.key];
-    if (savedPosition !== undefined) {
-      setTimeout(() => window.scrollTo(0, savedPosition), 0);
-    } else {
+    // When restoreContext is true, Home manages its own scroll via scrollIntoView.
+    // If we also call window.scrollTo here we get a visible double-jump.
+    // Check both router state (website back button) and sessionStorage (browser back button).
+    const selfManagedByState = location.state?.restoreContext === true;
+    const selfManagedByStorage = (() => {
+      try {
+        const raw = sessionStorage.getItem('navigationContext');
+        if (raw) {
+          const ctx = JSON.parse(raw);
+          return ctx.restoreContext === true && Date.now() - ctx.timestamp < 15_000;
+        }
+      } catch (_) {}
+      return false;
+    })();
+
+    // Detail/form pages always open at the top — never restore a saved scroll
+    // position. This prevents the "opens mid-page" bug when revisiting a
+    // property that was previously scrolled.
+    const alwaysScrollToTop = /^\/(property|gallery|about|contact|careers|blogs|buy-sell|guide|list-property|profile|call-log)/.test(location.pathname);
+
+    if (alwaysScrollToTop) {
       window.scrollTo(0, 0);
+    } else if (!selfManagedByState && !selfManagedByStorage) {
+      const saved = scrollPositions[location.key];
+      if (saved !== undefined) {
+        requestAnimationFrame(() => window.scrollTo(0, saved));
+      } else {
+        window.scrollTo(0, 0);
+      }
     }
 
     return () => {
       scrollPositions[location.key] = window.scrollY;
     };
   }, [location]);
-  
+
   return null;
 }
 
