@@ -39,7 +39,11 @@ const Home = () => {
       const raw = sessionStorage.getItem('navigationContext');
       if (raw) {
         const ctx = JSON.parse(raw);
-        if (ctx.restoreContext === true && Date.now() - ctx.timestamp < 15_000) return true;
+        const fresh = Date.now() - ctx.timestamp < 15_000;
+        const intendedForHome = !ctx.fromRoute || ctx.fromRoute === '/';
+        if (fresh && intendedForHome && ctx.restoreContext === true) return true;
+        // Stale entry — remove it so it doesn't pollute future mounts
+        if (!fresh) sessionStorage.removeItem('navigationContext');
       }
     } catch (_) {}
     return false;
@@ -54,25 +58,35 @@ const Home = () => {
   // (opacity-0 → opacity-100) don't hide cards while scrollIntoView fires.
   const [visibleSections, setVisibleSections] = useState(
     isBackNavOnMount
-      ? { properties: true, 'tanavi-highlights': true, banner: true, 'agri-banner': true }
+      ? { properties: true, 'tanavi-highlights': true, banner: true, 'agri-banner': true, 'choice-properties': true }
       : {}
   );
 
-  // Separate ref maps — property cards and category tiles must NOT share keys
-  const propertyRefs   = useRef({});
-  const categoryRefs   = useRef({});
+  // Separate ref maps — property cards and category tiles must NOT share keys.
+  // Featured and Highlights cards use SECTION-PREFIXED keys ("featured-<id>" /
+  // "tanavi-<id>") so a property that appears in both sections never collides.
+  const propertyRefs   = useRef({});   // keyed as "featured-<id>" or "tanavi-<id>"
+  const categoryRefs   = useRef({});   // keyed as category slug
+  const choiceRefs     = useRef({});   // keyed as choice slug
   const hasRestoredRef = useRef(false);
   const rafRef         = useRef(null);
 
   // ── ref helpers ─────────────────────────────────────────────────────────────
-  const getPropertyRef = useCallback((id) => {
-    if (!propertyRefs.current[id]) propertyRefs.current[id] = React.createRef();
-    return propertyRefs.current[id];
+  // section = "featured" | "tanavi"
+  const getPropertyRef = useCallback((id, section = 'featured') => {
+    const key = `${section}-${id}`;
+    if (!propertyRefs.current[key]) propertyRefs.current[key] = React.createRef();
+    return propertyRefs.current[key];
   }, []);
 
   const getCategoryRef = useCallback((slug) => {
     if (!categoryRefs.current[slug]) categoryRefs.current[slug] = React.createRef();
     return categoryRefs.current[slug];
+  }, []);
+
+  const getChoiceRef = useCallback((slug) => {
+    if (!choiceRefs.current[slug]) choiceRefs.current[slug] = React.createRef();
+    return choiceRefs.current[slug];
   }, []);
 
   // ── data fetching ────────────────────────────────────────────────────────────
@@ -124,12 +138,28 @@ const Home = () => {
     // Step 1 — already done this mount
     if (hasRestoredRef.current) return;
     // Step 2 — data not ready; retry on next render (do NOT mark as restored)
-    if (loading || properties.length === 0) return;
+    // Exception: category/choice tiles don't need properties to be loaded —
+    // they are static and always rendered. Allow restoration for those immediately.
+    const needsProperties = !location.state?.isCategory && !location.state?.isChoice;
+    const storageCtx = (() => {
+      try {
+        const raw = sessionStorage.getItem('navigationContext');
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
+      return null;
+    })();
+    const storageIsCategory = storageCtx?.isCategory === true;
+    const storageIsChoice   = storageCtx?.isChoice   === true;
+    const storageNeedsProps = !storageIsCategory && !storageIsChoice;
+
+    if ((needsProperties && storageNeedsProps) && (loading || properties.length === 0)) return;
 
     // Step 3 — read intent from router state, then sessionStorage fallback
     let shouldRestore = location.state?.restoreContext === true;
     let clickedId     = location.state?.clickedPropertyId;
     let isCategory    = location.state?.isCategory === true;
+    let isChoice      = location.state?.isChoice === true;
+    let section       = location.state?.section || 'featured'; // "featured" | "tanavi"
     const scrollTo    = location.state?.scrollTo;
 
     if (!shouldRestore) {
@@ -138,11 +168,20 @@ const Home = () => {
         if (raw) {
           const ctx = JSON.parse(raw);
           if (Date.now() - ctx.timestamp < 15_000) {
-            shouldRestore = ctx.restoreContext;
-            clickedId     = ctx.clickedPropertyId;
-            isCategory    = ctx.isCategory === true;
+            // Only consume this context if it was written for navigation back to Home.
+            const intendedForHome = !ctx.fromRoute || ctx.fromRoute === '/';
+            if (intendedForHome) {
+              shouldRestore = ctx.restoreContext;
+              clickedId     = ctx.clickedPropertyId;
+              isCategory    = ctx.isCategory === true;
+              isChoice      = ctx.isChoice === true;
+              section       = ctx.section || 'featured';
+              // Consume it — pageshow handler will re-read if it fires after this
+              sessionStorage.removeItem('navigationContext');
+            }
+          } else {
+            sessionStorage.removeItem('navigationContext');
           }
-          sessionStorage.removeItem('navigationContext');
         }
       } catch (_) {}
     }
@@ -156,17 +195,27 @@ const Home = () => {
       return;
     }
 
-    // Step 4b — category tile
+    // Step 4b — category tile (Property Categories section)
     if (shouldRestore && isCategory && clickedId) {
       hasRestoredRef.current = true;
       scrollToRef(categoryRefs.current[clickedId], false);
       return;
     }
 
-    // Step 4c — property card (Featured or Highlights)
-    if (shouldRestore && clickedId) {
+    // Step 4c — choice tile (Choice Properties section)
+    if (shouldRestore && isChoice && clickedId) {
       hasRestoredRef.current = true;
-      scrollToRef(propertyRefs.current[clickedId], true);
+      scrollToRef(choiceRefs.current[clickedId], false);
+      return;
+    }
+
+    // Step 4d — property card (Featured or Highlights) — needs properties loaded.
+    // Key is section-prefixed: "featured-<id>" or "tanavi-<id>"
+    if (shouldRestore && clickedId) {
+      if (loading || properties.length === 0) return; // wait for data
+      hasRestoredRef.current = true;
+      const refKey = `${section}-${clickedId}`;
+      scrollToRef(propertyRefs.current[refKey], true);
       return;
     }
 
@@ -176,6 +225,69 @@ const Home = () => {
 
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
   }, [loading, location.state, properties.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── pageshow — browser back button handler ──────────────────────────────────
+  // pageshow fires every time the page becomes visible, including browser back.
+  // This is the ONLY reliable way to catch browser/device back button.
+  // Note: the scroll restoration useEffect above may have already consumed
+  // navigationContext. This handler is the safety net for cases where the
+  // useEffect ran before refs were attached (e.g. bfcache restore).
+  useEffect(() => {
+    const handlePageShow = () => {
+      // Small delay to let React Router finish its work first
+      setTimeout(() => {
+        try {
+          const raw = sessionStorage.getItem('navigationContext');
+          if (!raw) return;
+          const ctx = JSON.parse(raw);
+          if (Date.now() - ctx.timestamp >= 15_000) {
+            sessionStorage.removeItem('navigationContext');
+            return;
+          }
+          const intendedForHome = !ctx.fromRoute || ctx.fromRoute === '/';
+          if (!intendedForHome || !ctx.restoreContext) return;
+
+          const { clickedPropertyId, isCategory, isChoice, section = 'featured' } = ctx;
+          if (!clickedPropertyId) return;
+
+          // Consume and scroll
+          sessionStorage.removeItem('navigationContext');
+          hasRestoredRef.current = true;
+
+          // Reset scroll to top first
+          window.scrollTo(0, 0);
+
+          const tryScroll = (ref, highlight, attempts = 0) => {
+            if (attempts > 20) return;
+            if (ref?.current) {
+              setTimeout(() => {
+                ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (highlight) {
+                  ref.current?.classList.add('card-highlight');
+                  setTimeout(() => ref.current?.classList.remove('card-highlight'), 2000);
+                }
+              }, 80);
+            } else {
+              setTimeout(() => tryScroll(ref, highlight, attempts + 1), 100);
+            }
+          };
+
+          if (isCategory) {
+            tryScroll(categoryRefs.current[clickedPropertyId], false);
+          } else if (isChoice) {
+            tryScroll(choiceRefs.current[clickedPropertyId], false);
+          } else {
+            // Section-prefixed key: "featured-<id>" or "tanavi-<id>"
+            const refKey = `${section}-${clickedPropertyId}`;
+            tryScroll(propertyRefs.current[refKey], true);
+          }
+        } catch (_) {}
+      }, 50);
+    };
+
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function scrollToRef(ref, highlight = false, attempts = 0) {
     if (attempts > 30) return;
@@ -249,7 +361,7 @@ const Home = () => {
             {filteredProperties.map(property => (
               <div
                 key={property._id}
-                ref={getPropertyRef(property._id)}
+                ref={getPropertyRef(property._id, 'featured')}
                 className="flex-shrink-0 w-[calc(50%-8px)] snap-start md:w-auto"
               >
                 <PropertyCard property={property} section="properties" />
@@ -263,7 +375,7 @@ const Home = () => {
       <PropertyCategories getCategoryRef={getCategoryRef} />
 
       <TanaviHighlights getPropertyRef={getPropertyRef} />
-      <ChoiceProperties />
+      <ChoiceProperties getChoiceRef={getChoiceRef} />
 
       {/* Banner */}
       <section
