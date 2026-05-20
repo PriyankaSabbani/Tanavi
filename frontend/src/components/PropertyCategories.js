@@ -33,16 +33,27 @@ const PropertyCategories = ({ categoryRefs, getCategoryRef }) => {
   ];
 
   const handleCategoryClick = (slug) => {
-    const currentScrollPosition = window.scrollY;
+    // Write to sessionStorage BEFORE navigating — fallback for browser/device
+    // back button which discards location.state on navigation.
+    try {
+      sessionStorage.setItem('navigationContext', JSON.stringify({
+        restoreContext:    true,
+        clickedPropertyId: slug,
+        fromRoute:         location.pathname,
+        isCategory:        true,
+        isChoice:          false,
+        timestamp:         Date.now(),
+      }));
+    } catch (_) {}
 
-    // Navigate with restoration context
     navigate(`/category/${slug}`, {
       state: {
-        fromRoute: location.pathname,
+        fromRoute:    location.pathname,
         categorySlug: slug,
-        scrollPosition: currentScrollPosition,
-        section: 'categories',
-      }
+        isCategory:   true,   // tells Home to look in categoryRefs, not propertyRefs
+        section:      'categories',
+        restoreContext: true,
+      },
     });
   };
 
