@@ -1808,7 +1808,7 @@ const AdminDashboard = () => {
                                     ) : (
                                       <input
                                         type="text"
-                                        placeholder={field.placeholder}
+                                        placeholder={field.placeholder} 
                                         value={propertyForm[field.name] || ''}
                                         onChange={(e) => setPropertyForm({...propertyForm, [field.name]: e.target.value})}
                                         className="w-full border p-3 rounded"
