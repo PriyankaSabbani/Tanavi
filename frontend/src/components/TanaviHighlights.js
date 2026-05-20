@@ -63,7 +63,7 @@ const TanaviHighlights = ({ getPropertyRef }) => {
           {properties.slice(0, 8).map(property => (
             <div
               key={property._id}
-              ref={getPropertyRef ? getPropertyRef(property._id) : null}
+              ref={getPropertyRef ? getPropertyRef(property._id, 'tanavi') : null}
               className="flex-shrink-0 w-[calc(50%-8px)] snap-start md:w-auto"
             >
               <HighlightCard property={property} />
