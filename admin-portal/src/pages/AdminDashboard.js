@@ -1204,12 +1204,12 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
-      <div className="bg-white shadow">
+      <div className="bg-white shadow md:pl-64">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setSidebarOpen(!sidebarOpen)} 
-              className="text-gray-700 hover:text-blue-600 p-2"
+              className="text-gray-700 hover:text-blue-600 p-2 md:hidden"
             >
               <FaBars size={24} />
             </button>
@@ -1219,6 +1219,81 @@ const AdminDashboard = () => {
             <FaSignOutAlt /> Logout
           </button>
         </div>
+      </div>
+
+      {/* Persistent Sidebar (desktop) */}
+      <div className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:w-64 bg-white shadow overflow-y-auto">
+        <div className="p-4 border-b">
+          <h2 className="text-xl font-bold">Menu</h2>
+        </div>
+        <nav className="p-4 space-y-2">
+          <button 
+            onClick={() => setActiveTab('properties')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded transition ${activeTab === 'properties' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
+          >
+            <FaHome /> Properties
+          </button>
+          <button 
+            onClick={() => setActiveTab('userSubmissions')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded transition ${activeTab === 'userSubmissions' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
+          >
+            <FaClipboardList /> List Property
+          </button>
+          <button 
+            onClick={() => setActiveTab('schedules')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded transition ${activeTab === 'schedules' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
+          >
+            <FaCalendar /> Schedules
+          </button>
+          <button 
+            onClick={() => setActiveTab('gallery')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded transition ${activeTab === 'gallery' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
+          >
+            <FaImages /> Gallery
+          </button>
+          <button 
+            onClick={() => setActiveTab('buysell')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded transition ${activeTab === 'buysell' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
+          >
+            <FaShoppingCart /> Buy/Sell
+          </button>
+          <button 
+            onClick={() => setActiveTab('testimonials')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded transition ${activeTab === 'testimonials' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
+          >
+            <FaStar /> Testimonials
+          </button>
+          <button 
+            onClick={() => setActiveTab('locations')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded transition ${activeTab === 'locations' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
+          >
+            <FaMapMarkerAlt /> Locations
+          </button>
+          <button 
+            onClick={() => setActiveTab('posters')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded transition ${activeTab === 'posters' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
+          >
+            <FaImage /> Posters
+          </button>
+          <button 
+            onClick={() => setActiveTab('chat')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded transition ${activeTab === 'chat' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
+          >
+            <FaComments /> Live Chat
+          </button>
+          <button 
+            onClick={() => setActiveTab('users')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded transition ${activeTab === 'users' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
+          >
+            <FaUser /> User Management
+          </button>
+          <button 
+            onClick={() => setActiveTab('soldProperties')} 
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded transition ${activeTab === 'soldProperties' ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
+          >
+            <FaCheckCircle /> Sold Properties
+          </button>
+        </nav>
       </div>
 
       {/* Side Drawer */}
@@ -1311,7 +1386,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-6 md:ml-64">
         {activeTab === 'chat' && <AdminChat />}
         {activeTab === 'users' && <UserManagement showToast={showToast} setModal={setModal} />}
 
@@ -1799,13 +1874,14 @@ const AdminDashboard = () => {
 
                       {/* Features */}
                       <div>
-                        <label className="block text-gray-700 mb-2">Features (comma separated)</label>
+                        <label className="block text-gray-700 mb-2">Features (comma separated) *</label>
                         <input 
                           type="text" 
                           value={propertyForm.features} 
                           onChange={(e) => setPropertyForm({...propertyForm, features: e.target.value})} 
                           className="w-full border p-3 rounded" 
                           placeholder="e.g., Swimming Pool, Garden, Security"
+                          required
                         />
                       </div>
 
@@ -1836,7 +1912,7 @@ const AdminDashboard = () => {
 
                       {/* Property Video */}
                       <div>
-                        <label className="block text-gray-700 mb-2">Property Video (Max 30 seconds)</label>
+                        <label className="block text-gray-700 mb-2">Property Video (Max 30 seconds, Optional)</label>
                         <input 
                           type="file" 
                           accept="video/*" 

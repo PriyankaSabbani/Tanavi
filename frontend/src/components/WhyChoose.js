@@ -23,7 +23,7 @@ const WhyChoose = () => {
     { step: 'STEP 1', icon: FaShieldAlt, title: 'Identify a Trusted Platform', subtitle: 'Start with Confidence' },
     { step: 'STEP 2', icon: FaHome, title: 'Select the Right Property', subtitle: 'Choose What Truly Fits You' },
     { step: 'STEP 3', icon: FaHandshake, title: 'Close the Deal Successfully', subtitle: 'Smooth, Transparent & Secure' },
-    { step: 'STEP 4', icon: FaSmile, title: 'A Happy Family, A Confident Decision', subtitle: 'Because Trust Creates Happiness' }
+    { step: 'STEP 4', icon: FaSmile, title: 'Smart Choice', subtitle: 'Trust Brings Happiness' }
   ];
 
   return (

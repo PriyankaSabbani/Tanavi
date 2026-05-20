@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FaBullseye, FaEye, FaStar, FaHome, FaUser, FaChartLine, FaSmile, FaShieldAlt, FaHandshake } from 'react-icons/fa';
 import imagePng from '../assets/image.png';
 import tanaviDeals from '../assets/tanavideals.jpg';
+import WhyChoose from '../components/WhyChoose';
 
 const About = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -223,93 +224,11 @@ const About = () => {
 
         <div className="mb-16">
           <div>
-            <h2 className="text-4xl font-bold text-center mb-3">How Tanavi Properties Helps You Succeed</h2>
-            <div className="flex items-center justify-center gap-2 mb-8">
-              <div className="h-px w-16 bg-amber-400"></div>
-              <p className="text-gray-600 text-lg">A Simple, Trusted Property Journey</p>
-              <div className="h-px w-16 bg-amber-400"></div>
+            <WhyChoose />
             </div>
-            
-            <div className="bg-gradient-to-br from-slate-100 via-emerald-50 to-amber-50 rounded-3xl p-8 border border-emerald-100 shadow-[0_20px_50px_rgba(16,185,129,0.15)]">
-              <div className="flex flex-wrap md:flex-nowrap items-center justify-center gap-3">
-                {/* Step 1 */}
-                <div className="flex-shrink-0">
-                  <div className="bg-gradient-to-r from-emerald-700 to-green-600 text-white text-xs font-bold px-5 py-1.5 rounded-full inline-block mb-3 shadow-md">STEP 1</div>
-                  <div className="bg-gradient-to-b from-white to-emerald-50/40 border border-emerald-100 rounded-xl p-4 shadow-lg w-56 hover:-translate-y-1 transition-all duration-300">
-                    <div className="flex flex-col items-center text-center">
-                      <div className="bg-gradient-to-br from-emerald-100 to-green-200 p-3 rounded-full mb-2 shadow-sm">
-                        <FaShieldAlt className="text-emerald-700 text-3xl" />
-                      </div>
-                      <h3 className="font-bold text-gray-800 text-sm mb-3 leading-tight">Identify a Trusted Platform</h3>
-                      <div className="bg-gradient-to-r from-amber-700 via-orange-600 to-amber-500 text-white py-2 px-3 rounded-lg w-full shadow-[0_8px_16px_rgba(217,119,6,0.4)] hover:shadow-[0_12px_24px_rgba(217,119,6,0.5)] transition-all duration-300 border border-amber-400/30">
-                        <p className="text-xs font-semibold tracking-wide">Start with Confidence</p>
                       </div>
                     </div>
-                  </div>
-                </div>
-                <div className="hidden md:flex items-center justify-center flex-shrink-0">
-                  <div className="text-gray-400 text-2xl">»</div>
-                </div>
-
-                {/* Step 2 */}
-                <div className="flex-shrink-0">
-                  <div className="bg-gradient-to-r from-emerald-700 to-green-600 text-white text-xs font-bold px-5 py-1.5 rounded-full inline-block mb-3 shadow-md">STEP 2</div>
-                  <div className="bg-gradient-to-b from-white to-emerald-50/40 border border-emerald-100 rounded-xl p-4 shadow-lg w-56 hover:-translate-y-1 transition-all duration-300">
-                    <div className="flex flex-col items-center text-center">
-                      <div className="bg-gradient-to-br from-emerald-100 to-green-200 p-3 rounded-full mb-2 shadow-sm">
-                        <FaHome className="text-emerald-700 text-3xl" />
-                      </div>
-                      <h3 className="font-bold text-gray-800 text-sm mb-3 leading-tight">Select the Right Property</h3>
-                      <div className="bg-gradient-to-r from-amber-700 via-orange-600 to-amber-500 text-white py-2 px-3 rounded-lg w-full shadow-[0_8px_16px_rgba(217,119,6,0.4)] hover:shadow-[0_12px_24px_rgba(217,119,6,0.5)] transition-all duration-300 border border-amber-400/30">
-                        <p className="text-xs font-semibold tracking-wide">Choose What Truly Fits You</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="hidden md:flex items-center justify-center flex-shrink-0">
-                  <div className="text-gray-400 text-2xl">»</div>
-                </div>
-
-                {/* Step 3 */}
-                <div className="flex-shrink-0">
-                  <div className="bg-gradient-to-r from-emerald-700 to-green-600 text-white text-xs font-bold px-5 py-1.5 rounded-full inline-block mb-3 shadow-md">STEP 3</div>
-                  <div className="bg-gradient-to-b from-white to-emerald-50/40 border border-emerald-100 rounded-xl p-4 shadow-lg w-56 hover:-translate-y-1 transition-all duration-300">
-                    <div className="flex flex-col items-center text-center">
-                      <div className="bg-gradient-to-br from-emerald-100 to-green-200 p-3 rounded-full mb-2 shadow-sm">
-                        <FaHandshake className="text-emerald-700 text-3xl" />
-                      </div>
-                      <h3 className="font-bold text-gray-800 text-sm mb-3 leading-tight">Close the Deal Successfully</h3>
-                      <div className="bg-gradient-to-r from-amber-700 via-orange-600 to-amber-500 text-white py-2 px-3 rounded-lg w-full shadow-[0_8px_16px_rgba(217,119,6,0.4)] hover:shadow-[0_12px_24px_rgba(217,119,6,0.5)] transition-all duration-300 border border-amber-400/30">
-                        <p className="text-xs font-semibold tracking-wide">Smooth, Transparent & Secure</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="hidden md:flex items-center justify-center flex-shrink-0">
-                  <div className="text-gray-400 text-2xl">»</div>
-                </div>
-
-                {/* Step 4 */}
-                <div className="flex-shrink-0">
-                  <div className="bg-gradient-to-r from-emerald-700 to-green-600 text-white text-xs font-bold px-5 py-1.5 rounded-full inline-block mb-3 shadow-md">STEP 4</div>
-                  <div className="bg-gradient-to-b from-white to-emerald-50/40 border border-emerald-100 rounded-xl p-4 shadow-lg w-56 hover:-translate-y-1 transition-all duration-300">
-                    <div className="flex flex-col items-center text-center">
-                      <div className="bg-gradient-to-br from-emerald-100 to-green-200 p-3 rounded-full mb-2 shadow-sm">
-                        <FaSmile className="text-emerald-700 text-3xl" />
-                      </div>
-                      <h3 className="font-bold text-gray-800 text-sm mb-3 leading-tight">A Happy Family, A Confident Decision</h3>
-                      <div className="bg-gradient-to-r from-amber-700 via-orange-600 to-amber-500 text-white py-2 px-3 rounded-lg w-full shadow-[0_8px_16px_rgba(217,119,6,0.4)] hover:shadow-[0_12px_24px_rgba(217,119,6,0.5)] transition-all duration-300 border border-amber-400/30">
-                        <p className="text-xs font-semibold tracking-wide">Because Trust Creates Happiness</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+                  </div>     
   );
 };
 

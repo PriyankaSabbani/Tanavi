@@ -666,7 +666,7 @@ const ListProperty = () => {
             </div>
 
             <div>
-              <label className="block text-gray-700 mb-2">Property Video (Max 30 seconds)</label>
+              <label className="block text-gray-700 mb-2">Property Video (Max 30 seconds, Optional)</label>
               <input type="file" accept="video/*" onChange={handleVideoUpload} className="w-full border p-3 rounded" disabled={uploading} />
               {uploading && <p className="text-sm text-blue-600 mt-1">Uploading video...</p>}
               {formData.video && (
