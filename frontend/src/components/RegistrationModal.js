@@ -86,8 +86,16 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
 
   // Send OTP to email
   const handleSendOtp = async () => {
+    if (!formData.name || !formData.name.trim()) {
+      setModalState({ isOpen: true, type: 'error', title: 'Error', message: 'Please enter your full name before sending OTP' });
+      return;
+    }
+    if (!formData.phone || formData.phone.length !== 10) {
+      setModalState({ isOpen: true, type: 'error', title: 'Error', message: 'Please enter a valid 10-digit phone number before sending OTP' });
+      return;
+    }
     if (!formData.email) {
-      setModalState({ isOpen: true, type: 'error', title: 'Error', message: 'Please enter your email' });
+      setModalState({ isOpen: true, type: 'error', title: 'Error', message: 'Please enter your email address' });
       return;
     }
 
@@ -102,12 +110,13 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
       const data = await res.json();
       if (res.ok) {
         setOtpSent(true);
-        setModalState({ isOpen: true, type: 'success', title: 'OTP Sent!', message: 'OTP has been sent to your email successfully!' });
+        setModalState({ isOpen: true, type: 'success', title: 'OTP Sent!', message: `OTP has been sent to ${formData.email}. Please check your inbox (and spam folder).` });
       } else {
-        setModalState({ isOpen: true, type: 'error', title: 'Failed', message: data.message || 'Failed to send OTP' });
+        setModalState({ isOpen: true, type: 'error', title: 'Failed to Send OTP', message: data.message || 'Failed to send OTP. Please try again.' });
       }
     } catch (error) {
-      setModalState({ isOpen: true, type: 'error', title: 'Error', message: 'Failed to send OTP. Please try again.' });
+      console.error('Send OTP error:', error);
+      setModalState({ isOpen: true, type: 'error', title: 'Connection Error', message: 'Could not reach the server. Please check your internet connection and try again.' });
     } finally {
       setSendingOtp(false);
     }
@@ -116,12 +125,7 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
   // Verify OTP
   const handleVerifyOtp = async () => {
     if (!otp || otp.length !== 6) {
-      setModalState({ isOpen: true, type: 'error', title: 'Invalid OTP', message: 'Please enter a valid 6-digit OTP' });
-      return;
-    }
-
-    if (!formData.name || !formData.phone) {
-      setModalState({ isOpen: true, type: 'error', title: 'Missing Information', message: 'Please fill in your name and phone number' });
+      setModalState({ isOpen: true, type: 'error', title: 'Invalid OTP', message: 'Please enter the 6-digit OTP sent to your email' });
       return;
     }
 
@@ -141,12 +145,13 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
       if (res.ok) {
         setIsVerified(true);
         setAuthToken(data.token);
-        setModalState({ isOpen: true, type: 'success', title: 'Verified!', message: 'Your email has been verified successfully!' });
+        setModalState({ isOpen: true, type: 'success', title: 'Email Verified!', message: 'Your email has been verified successfully. You can now complete the form.' });
       } else {
-        setModalState({ isOpen: true, type: 'error', title: 'Verification Failed', message: data.message || 'Invalid OTP. Please try again.' });
+        setModalState({ isOpen: true, type: 'error', title: 'Verification Failed', message: data.message || 'Invalid or expired OTP. Please request a new one.' });
       }
     } catch (error) {
-      setModalState({ isOpen: true, type: 'error', title: 'Error', message: 'Failed to verify OTP. Please try again.' });
+      console.error('Verify OTP error:', error);
+      setModalState({ isOpen: true, type: 'error', title: 'Connection Error', message: 'Could not reach the server. Please check your internet connection and try again.' });
     }
   };
 
@@ -268,12 +273,13 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                 <input type="text" name="acres" value={formData.acres} onChange={handleNumericChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" placeholder="0" />
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Guntas</label>
+                <label className="block text-gray-700 font-medium mb-2">Guntas<span className="text-red-500">*</span></label>
                 <input 
                   type="text" 
                   name="guntas" 
                   value={formatGuntasDisplay(formData.guntas)} 
                   onChange={handleGuntasChange}
+                  required
                   className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" 
                   placeholder="00" 
                 />
@@ -431,12 +437,12 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Bore</label>
-                <input type="text" name="bore" value={formData.bore} onChange={handleNumericChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" placeholder="0" />
+                <label className="block text-gray-700 font-medium mb-2">Bore<span className="text-red-500">*</span></label>
+                <input type="text" name="bore" value={formData.bore} onChange={handleNumericChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" placeholder="0" />
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Road Type</label>
-                <select name="roadType" value={formData.roadType} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Road Type<span className="text-red-500">*</span></label>
+                <select name="roadType" value={formData.roadType} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="Highway - Commercial">Highway - Commercial</option>
                   <option value="Semi Commercial">Semi Commercial</option>
@@ -446,13 +452,14 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Road</label>
+                <label className="block text-gray-700 font-medium mb-2">Road<span className="text-red-500">*</span></label>
                 <div className="relative">
                   <input 
                     type="text" 
                     name="road" 
                     value={formData.road} 
-                    onChange={handleRoadChange} 
+                    onChange={handleRoadChange}
+                    required 
                     className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" 
                     placeholder="0" 
                   />
@@ -460,8 +467,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                 </div>
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Property Under</label>
-                <select name="propertyUnder" value={formData.propertyUnder} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Property Under<span className="text-red-500">*</span></label>
+                <select name="propertyUnder" value={formData.propertyUnder} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="GHMC">GHMC</option>
                   <option value="Municipal Corporation">Municipal Corporation</option>
@@ -471,8 +478,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
               </div>
             </div>
             <div>
-              <label className="block text-gray-700 font-medium mb-2">Property Facing</label>
-              <select name="propertyFacing" value={formData.propertyFacing} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+              <label className="block text-gray-700 font-medium mb-2">Property Facing<span className="text-red-500">*</span></label>
+              <select name="propertyFacing" value={formData.propertyFacing} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                 <option value="">Select</option>
                 <option value="East">East</option>
                 <option value="West">West</option>
@@ -498,12 +505,12 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Bore</label>
-                <input type="text" name="bore" value={formData.bore} onChange={handleNumericChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" placeholder="0" />
+                <label className="block text-gray-700 font-medium mb-2">Bore<span className="text-red-500">*</span></label>
+                <input type="text" name="bore" value={formData.bore} onChange={handleNumericChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" placeholder="0" />
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Road Type</label>
-                <select name="roadType" value={formData.roadType} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Road Type<span className="text-red-500">*</span></label>
+                <select name="roadType" value={formData.roadType} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="Highway">Highway</option>
                   <option value="Commercial">Commercial</option>
@@ -514,13 +521,14 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Road</label>
+                <label className="block text-gray-700 font-medium mb-2">Road<span className="text-red-500">*</span></label>
                 <div className="relative">
                   <input 
                     type="text" 
                     name="road" 
                     value={formData.road} 
-                    onChange={handleRoadChange} 
+                    onChange={handleRoadChange}
+                    required 
                     className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" 
                     placeholder="0" 
                   />
@@ -528,8 +536,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                 </div>
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Property Under</label>
-                <select name="propertyUnder" value={formData.propertyUnder} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Property Under<span className="text-red-500">*</span></label>
+                <select name="propertyUnder" value={formData.propertyUnder} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="GHMC">GHMC</option>
                   <option value="Municipal Corporation">Municipal Corporation</option>
@@ -539,8 +547,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
               </div>
             </div>
             <div>
-              <label className="block text-gray-700 font-medium mb-2">Property Facing</label>
-              <select name="propertyFacing" value={formData.propertyFacing} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+              <label className="block text-gray-700 font-medium mb-2">Property Facing<span className="text-red-500">*</span></label>
+              <select name="propertyFacing" value={formData.propertyFacing} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                 <option value="">Select</option>
                 <option value="East">East</option>
                 <option value="West">West</option>
@@ -579,7 +587,7 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                     placeholder="0" 
                     style={{ paddingRight: '60px' }}
                   />
-                  <span className="absolute top-1/2 transform -translate-y-1/2 text-gray-500 font-medium pointer-events-none" style={{ left: `calc(4rem + ${formData.buildupArea ? formData.buildupArea.length * 9 : 0}px)` }}>SFT</span>
+                  <span className="absolute top-1/2 transform -translate-y-1/2 text-gray-500 font-medium pointer-events-none" style={{ left: `calc(4rem + ${formData.buildupArea ? formData.buildupArea.length * 9 : 0}px)` }}>Sq. Ft</span>
                 </div>
               </div>
             </div>
@@ -638,8 +646,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Road Type</label>
-                <select name="roadType" value={formData.roadType} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Road Type<span className="text-red-500">*</span></label>
+                <select name="roadType" value={formData.roadType} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="Highway">Highway</option>
                   <option value="Commercial">Commercial</option>
@@ -648,13 +656,14 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Road</label>
+                <label className="block text-gray-700 font-medium mb-2">Road<span className="text-red-500">*</span></label>
                 <div className="relative">
                   <input 
                     type="text" 
                     name="road" 
                     value={formData.road} 
-                    onChange={handleRoadChange} 
+                    onChange={handleRoadChange}
+                    required
                     className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" 
                     placeholder="0" 
                   />
@@ -664,8 +673,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Property Under</label>
-                <select name="propertyUnder" value={formData.propertyUnder} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Property Under<span className="text-red-500">*</span></label>
+                <select name="propertyUnder" value={formData.propertyUnder} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="GHMC">GHMC</option>
                   <option value="Municipal Corporation">Municipal Corporation</option>
@@ -674,8 +683,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Property Facing</label>
-                <select name="propertyFacing" value={formData.propertyFacing} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Property Facing<span className="text-red-500">*</span></label>
+                <select name="propertyFacing" value={formData.propertyFacing} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="East">East</option>
                   <option value="West">West</option>
@@ -698,12 +707,13 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                 <input type="text" name="farmhouseArea" value={formData.farmhouseArea} onChange={handleNumericChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" placeholder="0" />
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Guntas</label>
+                <label className="block text-gray-700 font-medium mb-2">Guntas<span className="text-red-500">*</span></label>
                 <input 
                   type="text" 
                   name="farmhouseGuntas" 
                   value={formatGuntasDisplay(formData.farmhouseGuntas)} 
                   onChange={handleGuntasChange}
+                  required
                   className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" 
                   placeholder="00" 
                 />
@@ -715,8 +725,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Road Type</label>
-                <select name="roadType" value={formData.roadType} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Road Type<span className="text-red-500">*</span></label>
+                <select name="roadType" value={formData.roadType} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="Highway">Highway</option>
                   <option value="BT Road">BT Road</option>
@@ -724,13 +734,14 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Road</label>
+                <label className="block text-gray-700 font-medium mb-2">Road<span className="text-red-500">*</span></label>
                 <div className="relative">
                   <input 
                     type="text" 
                     name="road" 
                     value={formData.road} 
-                    onChange={handleRoadChange} 
+                    onChange={handleRoadChange}
+                    required
                     className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" 
                     placeholder="0" 
                   />
@@ -740,8 +751,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Property Under</label>
-                <select name="propertyUnder" value={formData.propertyUnder} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Property Under<span className="text-red-500">*</span></label>
+                <select name="propertyUnder" value={formData.propertyUnder} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="GHMC">GHMC</option>
                   <option value="Municipal Corporation">Municipal Corporation</option>
@@ -750,8 +761,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Property Facing</label>
-                <select name="propertyFacing" value={formData.propertyFacing} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Property Facing<span className="text-red-500">*</span></label>
+                <select name="propertyFacing" value={formData.propertyFacing} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="East">East</option>
                   <option value="West">West</option>
@@ -763,8 +774,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Boundary Type</label>
-                <select name="boundaryType" value={formData.boundaryType} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Boundary Type<span className="text-red-500">*</span></label>
+                <select name="boundaryType" value={formData.boundaryType} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="Compound Wall">Compound Wall</option>
                   <option value="Precast Compound">Precast Compound</option>
@@ -773,8 +784,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Any PT Case</label>
-                <select name="anyPTCase" value={formData.anyPTCase} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Any PT Case<span className="text-red-500">*</span></label>
+                <select name="anyPTCase" value={formData.anyPTCase} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
@@ -783,12 +794,12 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Bore</label>
-                <input type="text" name="bore" value={formData.bore} onChange={handleNumericChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" placeholder="0" />
+                <label className="block text-gray-700 font-medium mb-2">Bore<span className="text-red-500">*</span></label>
+                <input type="text" name="bore" value={formData.bore} onChange={handleNumericChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" placeholder="0" />
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Swimming Pool</label>
-                <select name="swimmingPool" value={formData.swimmingPool} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Swimming Pool<span className="text-red-500">*</span></label>
+                <select name="swimmingPool" value={formData.swimmingPool} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
@@ -797,8 +808,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Any Construction</label>
-                <select name="anyConstruction" value={formData.anyConstruction} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Any Construction<span className="text-red-500">*</span></label>
+                <select name="anyConstruction" value={formData.anyConstruction} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
@@ -806,7 +817,7 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
               </div>
             </div>
             <div>
-              <label className="block text-gray-700 font-medium mb-2">Washroom Details</label>
+              <label className="block text-gray-700 font-medium mb-2">Washroom Details<span className="text-red-500">*</span></label>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <input type="number" name="washroomInside" value={formData.washroomInside} onChange={handleWashroomChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" placeholder="Inside: 0" />
@@ -820,8 +831,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
               </div>
             </div>
             <div>
-              <label className="block text-gray-700 font-medium mb-2">Garden</label>
-              <input type="text" name="garden" value={formData.garden} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" placeholder="Yes" />
+              <label className="block text-gray-700 font-medium mb-2">Garden<span className="text-red-500">*</span></label>
+              <input type="text" name="garden" value={formData.garden} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" placeholder="Yes" />
             </div>
             {renderLocationFields()}
           </>
@@ -856,7 +867,7 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                   <>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-gray-700 font-medium mb-2">Built-up Area <span className="text-red-500">*</span></label>
+                        <label className="block text-gray-700 font-medium mb-2">Built-up Area<span className="text-red-500">*</span></label>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">Sq. Ft</span>
                           <input 
@@ -871,7 +882,7 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-gray-700 font-medium mb-2">Expected Price (Per Sq.Ft) <span className="text-red-500">*</span></label>
+                        <label className="block text-gray-700 font-medium mb-2">Expected Price (Per Sq.Ft)<span className="text-red-500">*</span></label>
                         <input 
                           type="text" 
                           name="pricePerSqFt" 
@@ -883,11 +894,12 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                         />
                       </div>
                       <div>
-                        <label className="block text-gray-700 font-medium mb-2">Expected Rent (Auto)</label>
+                        <label className="block text-gray-700 font-medium mb-2">Expected Rent (Auto)<span className="text-red-500">*</span></label>
                         <input 
                           type="text" 
                           name="expectedRent" 
                           value={formData.expectedRent ? formatIndianNumber(formData.expectedRent) : ''} 
+                          required
                           readOnly 
                           className="w-full px-4 py-3 border border-gray-300 rounded bg-gray-100 focus:outline-none" 
                           placeholder="₹ 0" 
@@ -908,12 +920,13 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                         />
                       </div>
                       <div>
-                        <label className="block text-gray-700 font-medium mb-2">Floor</label>
+                        <label className="block text-gray-700 font-medium mb-2">Floor<span className="text-red-500">*</span></label>
                         <input 
                           type="text" 
                           name="floor" 
                           value={formData.floor} 
-                          onChange={handleNumericChange} 
+                          onChange={handleNumericChange}
+                          required
                           className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" 
                           placeholder="2nd Floor (of 5 Floors)" 
                         />
@@ -939,12 +952,13 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-gray-700 font-medium mb-2">Floor</label>
+                      <label className="block text-gray-700 font-medium mb-2">Floor<span className="text-red-500">*</span></label>
                       <input 
                         type="text" 
                         name="floor" 
                         value={formData.floor} 
-                        onChange={handleNumericChange} 
+                        onChange={handleNumericChange}
+                        required
                         className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" 
                         placeholder="2nd Floor (of 5 Floors)" 
                       />
@@ -954,20 +968,21 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">Plug & Play</label>
-                    <select name="plugPlay" value={formData.plugPlay} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                    <label className="block text-gray-700 font-medium mb-2">Plug & Play<span className="text-red-500">*</span></label>
+                    <select name="plugPlay" value={formData.plugPlay} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                       <option value="">Select</option>
                       <option value="Yes">Yes</option>
                       <option value="No">No</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">Work Stations</label>
+                    <label className="block text-gray-700 font-medium mb-2">Work Stations<span className="text-red-500">*</span></label>
                     <input 
                       type="text" 
                       name="workStations" 
                       value={formData.workStations} 
-                      onChange={handleNumericChange} 
+                      onChange={handleNumericChange}
+                      required
                       className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" 
                       placeholder="0" 
                     />
@@ -975,41 +990,44 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">Cabins</label>
+                    <label className="block text-gray-700 font-medium mb-2">Cabins<span className="text-red-500">*</span></label>
                     <input 
                       type="text" 
                       name="cabins" 
                       value={formData.cabins} 
-                      onChange={handleNumericChange} 
+                      onChange={handleNumericChange}
+                      required
                       className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" 
                       placeholder="0" 
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">Conference Hall</label>
+                    <label className="block text-gray-700 font-medium mb-2">Conference Hall<span className="text-red-500">*</span></label>
                     <input 
                       type="text" 
                       name="conferenceHall" 
                       value={formData.conferenceHall} 
                       onChange={handleNumericChange} 
+                      required
                       className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" 
                       placeholder="0" 
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">Pantry</label>
+                    <label className="block text-gray-700 font-medium mb-2">Pantry<span className="text-red-500">*</span></label>
                     <input 
                       type="text" 
                       name="pantry" 
                       value={formData.pantry} 
                       onChange={handleNumericChange} 
+                      required
                       className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" 
                       placeholder="0" 
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-gray-700 font-medium mb-2">Washroom Details</label>
+                  <label className="block text-gray-700 font-medium mb-2">Washroom Details<span className="text-red-500">*</span></label>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <input type="number" name="washroomInside" value={formData.washroomInside} onChange={handleWashroomChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" placeholder="Inside: 0" />
@@ -1024,20 +1042,21 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">Parking Details</label>
-                    <select name="parkingType" value={formData.parkingType} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                    <label className="block text-gray-700 font-medium mb-2">Parking Details<span className="text-red-500">*</span></label>
+                    <select name="parkingType" value={formData.parkingType} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                       <option value="">Select</option>
                       <option value="Public">Public</option>
                       <option value="Reserved">Reserved</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">Number of Car Parkings</label>
+                    <label className="block text-gray-700 font-medium mb-2">Number of Car Parkings<span className="text-red-500">*</span></label>
                     <input 
                       type="text" 
                       name="numberOfParkings" 
                       value={formData.numberOfParkings} 
-                      onChange={handleNumericChange} 
+                      onChange={handleNumericChange}
+                      required
                       className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" 
                       placeholder="0" 
                     />
@@ -1061,8 +1080,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">Unit</label>
-                    <select name="landAreaUnit" value={formData.landAreaUnit} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                    <label className="block text-gray-700 font-medium mb-2">Unit<span className="text-red-500">*</span></label>
+                    <select name="landAreaUnit" value={formData.landAreaUnit} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                       <option value="">Select</option>
                       <option value="Sq. Ft">Sq. Ft</option>
                       <option value="Sq. Yards">Sq. Yards</option>
@@ -1072,19 +1091,20 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">Bore</label>
+                    <label className="block text-gray-700 font-medium mb-2">Bore<span className="text-red-500">*</span></label>
                     <input 
                       type="text" 
                       name="bore" 
                       value={formData.bore} 
                       onChange={handleNumericChange} 
+                      required
                       className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" 
                       placeholder="0" 
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">Boundary Type</label>
-                    <select name="boundaryType" value={formData.boundaryType} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                    <label className="block text-gray-700 font-medium mb-2">Boundary Type<span className="text-red-500">*</span></label>
+                    <select name="boundaryType" value={formData.boundaryType} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                       <option value="">Select</option>
                       <option value="Compound Wall">Compound Wall</option>
                       <option value="Precast Compound">Precast Compound</option>
@@ -1112,8 +1132,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
             )}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Road Type</label>
-                <select name="roadType" value={formData.roadType} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Road Type<span className="text-red-500">*</span></label>
+                <select name="roadType" value={formData.roadType} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="Highway">Highway</option>
                   <option value="Commercial">Commercial</option>
@@ -1122,13 +1142,14 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Road</label>
+                <label className="block text-gray-700 font-medium mb-2">Road<span className="text-red-500">*</span></label>
                 <div className="relative">
                   <input 
                     type="text" 
                     name="road" 
                     value={formData.road} 
                     onChange={handleRoadChange} 
+                    required
                     className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary" 
                     placeholder="0" 
                   />
@@ -1138,8 +1159,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Property Under</label>
-                <select name="propertyUnder" value={formData.propertyUnder} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Property Under <span className="text-red-500">*</span></label>
+                <select name="propertyUnder" value={formData.propertyUnder} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="GHMC">GHMC</option>
                   <option value="Municipal Corporation">Municipal Corporation</option>
@@ -1148,8 +1169,8 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Property Facing</label>
-                <select name="propertyFacing" value={formData.propertyFacing} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
+                <label className="block text-gray-700 font-medium mb-2">Property Facing<span className="text-red-500">*</span></label>
+                <select name="propertyFacing" value={formData.propertyFacing} onChange={handleChange} required className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary">
                   <option value="">Select</option>
                   <option value="East">East</option>
                   <option value="West">West</option>
@@ -1694,11 +1715,12 @@ const RegistrationModal = ({ isOpen, onClose, modalType = 'register' }) => {
           {modalType === 'list' && (
             <>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Property Images (Max 8)</label>
+                <label className="block text-gray-700 font-medium mb-2">Property Images (Max 8)<span className="text-red-500">*</span></label>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
+                  // required
                   disabled={formData.images.length >= 8 || uploading}
                   className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:border-primary"
                 />
