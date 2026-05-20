@@ -49,15 +49,24 @@ const PropertyCard = memo(({ property, section = 'properties', fromCategory = nu
   const handleViewDetails = () => {
     const propertyId = property._id || property.id;
     const isCategory = section === 'category';
+    const isChoice   = section === 'choice';
+    // Map the section prop to the ref-map key prefix used in Home
+    // "properties" → "featured", "highlights" → "tanavi", others unchanged
+    const refSection = section === 'properties' ? 'featured'
+                     : section === 'highlights'  ? 'tanavi'
+                     : section;
 
     // Write to sessionStorage BEFORE navigating — fallback for browser/device
     // back button which discards location.state on navigation.
     try {
-      sessionStorage.setItem('lastClickedProperty', JSON.stringify({
-        propertyId,
-        fromRoute:  location.pathname,
+      sessionStorage.setItem('navigationContext', JSON.stringify({
+        restoreContext:    true,
+        clickedPropertyId: propertyId,
+        fromRoute:         location.pathname,
         isCategory,
-        timestamp:  Date.now(),
+        isChoice,
+        section:           refSection,
+        timestamp:         Date.now(),
       }));
     } catch (_) {}
 
@@ -66,8 +75,10 @@ const PropertyCard = memo(({ property, section = 'properties', fromCategory = nu
         fromRoute:         location.pathname,
         clickedPropertyId: propertyId,
         fromCategory,
-        section,
+        section:           refSection,
         isCategory,
+        isChoice,
+        restoreContext:    true,
       },
     });
   };
