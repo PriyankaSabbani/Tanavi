@@ -27,14 +27,18 @@ const ChoiceCategoryProperties = () => {
 
   const category = categoryMap[categorySlug] || categorySlug;
 
-  console.log('ChoiceCategoryProperties rendered, slug:', categorySlug, 'category:', category);
-
   // Get ref for a specific property card
   const getPropertyRef = useCallback((propertyId) => {
     if (!propertyRefs.current[propertyId]) {
       propertyRefs.current[propertyId] = React.createRef();
     }
     return propertyRefs.current[propertyId];
+  }, []);
+
+  useEffect(() => {
+    // Scroll to top instantly when the page first mounts — prevents the
+    // "opens at bottom" bug where the browser restores the previous scroll pos.
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
 
   useEffect(() => {
@@ -89,7 +93,6 @@ const ChoiceCategoryProperties = () => {
           }, 100);
 
           hasRestoredRef.current = true;
-          sessionStorage.removeItem('lastClickedProperty');
         } else {
           setTimeout(() => attemptRestore(attempts + 1), 50);
         }
@@ -111,14 +114,10 @@ const ChoiceCategoryProperties = () => {
     try {
       const res = await fetch(`${API_URL}/api/properties`);
       const data = await res.json();
-      console.log('All properties:', data);
-      console.log('Looking for category:', category);
       const filtered = data.filter(p => {
         const sections = p.sections || [p.section];
-        console.log(`Property: ${p.title}, sections:`, sections, 'category:', p.category, 'match:', p.category === category);
         return p.category === category && p.status === 'available' && sections.includes('choice');
       });
-      console.log('Filtered choice properties:', filtered);
       setProperties(filtered);
     } catch (error) {
       console.error('Error fetching properties:', error);
@@ -128,27 +127,34 @@ const ChoiceCategoryProperties = () => {
   };
 
   const handleBackClick = () => {
-    sessionStorage.setItem('navigationContext', JSON.stringify({
-      restoreContext: true,
-      clickedPropertyId: categorySlug,
-      timestamp: Date.now()
-    }));
-
-    navigate('/', {
-      state: {
-        restoreContext: true,
+    try {
+      sessionStorage.setItem('navigationContext', JSON.stringify({
+        restoreContext:    true,
         clickedPropertyId: categorySlug,
-      },
-      replace: false
-    });
+        isChoice:          true,
+        timestamp:         Date.now(),
+      }));
+    } catch (_) {}
+    navigate(-1);
   };
 
-  if (loading) {
-    console.log('Still loading...');
-    return <LoadingSpinner />;
-  }
+  // popstate fires BEFORE React unmounts on browser/device back
+  useEffect(() => {
+    const onPopState = () => {
+      try {
+        sessionStorage.setItem('navigationContext', JSON.stringify({
+          restoreContext:    true,
+          clickedPropertyId: categorySlug,
+          isChoice:          true,
+          timestamp:         Date.now(),
+        }));
+      } catch (_) {}
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [categorySlug]);
 
-  console.log('Rendering page, properties count:', properties.length);
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20 pb-12" style={{ minHeight: '100vh' }}>
